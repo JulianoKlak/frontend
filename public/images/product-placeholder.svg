@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Produto sem imagem</title>
+  <desc id="desc">Imagem generica para produto sem foto</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#dbeafe" />
+      <stop offset="100%" stop-color="#bfdbfe" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)" />
+  <rect x="110" y="110" width="580" height="380" rx="32" fill="#eff6ff" stroke="#60a5fa" stroke-width="12" />
+  <circle cx="290" cy="250" r="58" fill="#93c5fd" />
+  <path d="M180 430l120-110 95 75 88-118 137 153H180z" fill="#60a5fa" />
+</svg>
