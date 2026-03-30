@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { getStoredUser } from '../utils/checkout'
 
 export default function Header({ homeHref = '/', links = [] }) {
   const router = useRouter()
@@ -8,19 +9,7 @@ export default function Header({ homeHref = '/', links = [] }) {
 
   useEffect(() => {
     const syncUser = () => {
-      const storedUser = localStorage.getItem('user')
-
-      if (!storedUser) {
-        setUser(null)
-        return
-      }
-
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        localStorage.removeItem('user')
-        setUser(null)
-      }
+      setUser(getStoredUser())
     }
 
     syncUser()

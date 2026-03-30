@@ -3,6 +3,7 @@ import Link from 'next/link'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import Header from '../components/Header'
+import { createInitialCheckoutData, getStoredUser, paymentMethodOptions } from '../utils/checkout'
 
 export default function Cart() {
   const router = useRouter()
@@ -11,6 +12,7 @@ export default function Cart() {
   const [error, setError] = useState(null)
   const [total, setTotal] = useState(0)
   const [checkingOut, setCheckingOut] = useState(false)
+  const [checkoutData, setCheckoutData] = useState(createInitialCheckoutData())
 
   useEffect(() => {
     const fetchCart = async () => {
@@ -22,6 +24,8 @@ export default function Cart() {
           router.push('/login')
           return
         }
+
+        setCheckoutData(createInitialCheckoutData(user))
 
         // BUG #41: Permite acessar carrinho de outro usuário alterando o ID
         const response = await axios.get(
@@ -46,7 +50,7 @@ export default function Cart() {
   const calculateTotal = (cartItems) => {
     let sum = 0
     cartItems.forEach(item => {
-      sum += Number(item.price) // DEVERIA SER: item.price * item.quantity
+      sum += Number(item.price) * item.quantity
     })
     setTotal(sum)
   }
@@ -107,9 +111,33 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     const token = localStorage.getItem('token')
+    const user = getStoredUser()
 
     if (cart.length === 0) {
       alert('Carrinho vazio')
+      return
+    }
+
+    const requiredFields = {
+      customerName: 'Informe o nome do destinatario',
+      zipCode: 'Informe o CEP',
+      street: 'Informe a rua',
+      streetNumber: 'Informe o numero',
+      neighborhood: 'Informe o bairro',
+      city: 'Informe a cidade',
+      state: 'Informe o estado',
+      paymentMethod: 'Selecione uma forma de pagamento'
+    }
+
+    for (const [field, message] of Object.entries(requiredFields)) {
+      if (!String(checkoutData[field] || '').trim()) {
+        alert(message)
+        return
+      }
+    }
+
+    if (!user?.id) {
+      router.push('/login')
       return
     }
 
@@ -118,7 +146,7 @@ export default function Cart() {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/orders/checkout`,
-        {},
+        checkoutData,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -130,10 +158,19 @@ export default function Cart() {
       router.push(`/orders`)
     } catch (err) {
       // BUG #47: Não trata erro corretamente
-      alert(err.response?.data?.message || 'Erro ao realizar pedido')
+      alert(err.response?.data?.message || err.response?.data?.error || 'Erro ao realizar pedido')
     } finally {
       setCheckingOut(false)
     }
+  }
+
+  const handleCheckoutFieldChange = (event) => {
+    const { name, value } = event.target
+
+    setCheckoutData((currentData) => ({
+      ...currentData,
+      [name]: value
+    }))
   }
 
   if (loading) return <div className="text-center p-8">Carregando...</div>
@@ -207,28 +244,156 @@ export default function Cart() {
             </div>
 
             {/* Summary */}
-            <div className="bg-white rounded-lg shadow p-6 h-fit">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Resumo do Pedido</h2>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal:</span>
-                  <span>R$ {total.toFixed(2)}</span>
-                </div>
-                {/* BUG #42: Total está incorreto (não multiplica quantidade) */}
-                <div className="border-t pt-4 flex justify-between text-xl font-bold text-gray-900">
-                  <span>Total:</span>
-                  <span>R$ {total.toFixed(2)}</span>
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Entrega e Pagamento</h2>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
+                      Destinatario
+                    </label>
+                    <input
+                      id="customerName"
+                      name="customerName"
+                      type="text"
+                      value={checkoutData.customerName}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
+                      CEP
+                    </label>
+                    <input
+                      id="zipCode"
+                      name="zipCode"
+                      type="text"
+                      value={checkoutData.zipCode}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                      Estado
+                    </label>
+                    <input
+                      id="state"
+                      name="state"
+                      type="text"
+                      value={checkoutData.state}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="street" className="block text-sm font-medium text-gray-700">
+                      Rua
+                    </label>
+                    <input
+                      id="street"
+                      name="street"
+                      type="text"
+                      value={checkoutData.street}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="streetNumber" className="block text-sm font-medium text-gray-700">
+                      Numero
+                    </label>
+                    <input
+                      id="streetNumber"
+                      name="streetNumber"
+                      type="text"
+                      value={checkoutData.streetNumber}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-700">
+                      Bairro
+                    </label>
+                    <input
+                      id="neighborhood"
+                      name="neighborhood"
+                      type="text"
+                      value={checkoutData.neighborhood}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                      Cidade
+                    </label>
+                    <input
+                      id="city"
+                      name="city"
+                      type="text"
+                      value={checkoutData.city}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700">
+                      Forma de pagamento
+                    </label>
+                    <select
+                      id="paymentMethod"
+                      name="paymentMethod"
+                      value={checkoutData.paymentMethod}
+                      onChange={handleCheckoutFieldChange}
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    >
+                      {paymentMethodOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                disabled={checkingOut}
-                className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition font-semibold disabled:opacity-50"
-              >
-                {checkingOut ? 'Processando...' : 'Finalizar Compra'}
-              </button>
+              <div className="bg-white rounded-lg shadow p-6 h-fit">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Resumo do Pedido</h2>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal:</span>
+                    <span>R$ {total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Pagamento:</span>
+                    <span>{paymentMethodOptions.find((option) => option.value === checkoutData.paymentMethod)?.label}</span>
+                  </div>
+                  <div className="border-t pt-4 flex justify-between text-xl font-bold text-gray-900">
+                    <span>Total:</span>
+                    <span>R$ {total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  disabled={checkingOut}
+                  className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition font-semibold disabled:opacity-50"
+                >
+                  {checkingOut ? 'Processando...' : 'Finalizar Compra'}
+                </button>
+              </div>
             </div>
           </div>
         )}

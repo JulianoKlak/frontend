@@ -3,6 +3,11 @@ import Link from 'next/link'
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import Header from '../components/Header'
+import { paymentMethodOptions } from '../utils/checkout'
+
+const paymentMethodLabels = Object.fromEntries(
+  paymentMethodOptions.map((option) => [option.value, option.label])
+)
 
 export default function Orders() {
   const router = useRouter()
@@ -78,8 +83,16 @@ export default function Orders() {
                       R$ {parseFloat(order.total).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {/* BUG #49: Data não é formatada corretamente */}
-                      {new Date(order.created_at).toLocaleDateString('pt-BR')}
+                      <div>{new Date(order.created_at).toLocaleDateString('pt-BR')}</div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        {order.customer_name} • {paymentMethodLabels[order.payment_method] || order.payment_method}
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        {order.street}, {order.street_number} - {order.neighborhood}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {order.city}/{order.state} • CEP {order.zip_code}
+                      </div>
                     </td>
                   </tr>
                 ))}
