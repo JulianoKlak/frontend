@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import axios from 'axios'
+import Header from '../../components/Header'
 
 export default function ProductDetail() {
   const router = useRouter()
@@ -84,22 +85,10 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-900">
-            🐛 BugShop
-          </Link>
-          <div className="flex gap-4">
-            <Link href="/" className="text-blue-600 hover:text-blue-800">
-              Produtos
-            </Link>
-            <Link href="/cart" className="text-blue-600 hover:text-blue-800">
-              Carrinho
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <Header links={[
+        { href: '/', label: 'Produtos' },
+        { href: '/cart', label: 'Carrinho' }
+      ]} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

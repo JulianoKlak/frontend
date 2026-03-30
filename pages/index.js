@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import Header from '../components/Header'
 
 export default function Home() {
   const [products, setProducts] = useState([])
@@ -28,23 +29,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">🐛 BugShop</h1>
-          <div className="flex gap-4">
-            <Link href="/login" className="text-blue-600 hover:text-blue-800">
-              Login
-            </Link>
-            <Link href="/register" className="text-blue-600 hover:text-blue-800">
-              Cadastro
-            </Link>
-            <Link href="/cart" className="text-blue-600 hover:text-blue-800">
-              Carrinho
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <Header links={[{ href: '/cart', label: 'Carrinho' }]} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

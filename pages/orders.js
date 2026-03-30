@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import axios from 'axios'
 import { useRouter } from 'next/router'
+import Header from '../components/Header'
 
 export default function Orders() {
   const router = useRouter()
@@ -38,39 +39,15 @@ export default function Orders() {
     }
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    router.push('/login')
-  }
-
   if (loading) return <div className="text-center p-8">Carregando...</div>
   if (error) return <div className="text-center p-8 text-red-600">{error}</div>
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-900">
-            🐛 BugShop
-          </Link>
-          <div className="flex gap-4">
-            <Link href="/" className="text-blue-600 hover:text-blue-800">
-              Produtos
-            </Link>
-            <Link href="/cart" className="text-blue-600 hover:text-blue-800">
-              Carrinho
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-red-600 hover:text-red-800 font-semibold"
-            >
-              Logout
-            </button>
-          </div>
-        </nav>
-      </header>
+      <Header links={[
+        { href: '/', label: 'Produtos' },
+        { href: '/cart', label: 'Carrinho' }
+      ]} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
