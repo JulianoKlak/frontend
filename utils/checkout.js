@@ -25,11 +25,11 @@ export const getStoredUser = () => {
 
 export const createInitialCheckoutData = (user = {}) => ({
   customerName: user.name || '',
-  zipCode: '',
-  street: '',
-  streetNumber: '',
-  neighborhood: '',
-  city: '',
-  state: '',
-  paymentMethod: paymentMethodOptions[0].value
+  zipCode: user.zipCode || '',
+  street: user.street || '',
+  streetNumber: user.streetNumber || '',
+  neighborhood: user.neighborhood || '',
+  city: user.city || '',
+  state: user.state || '',
+  paymentMethod: user.cardLastFour ? 'credit_card' : paymentMethodOptions[0].value
 })
